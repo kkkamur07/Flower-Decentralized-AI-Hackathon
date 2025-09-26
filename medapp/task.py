@@ -7,16 +7,17 @@ import torch.nn.functional as F
 import wandb
 from datasets import load_from_disk
 from torch.utils.data import DataLoader
-from torchvision.transforms import Compose, Normalize, ToTensor
+from torchvision.transforms import Compose, Normalize, ToTensor, Lambda
 import torchvision.models as models
 
 
 class Net(nn.Module):
-    """Model (simple CNN adapted from 'PyTorch: A 60 Minute Blitz')"""
+    """Model (MobileNetV2 backbone with custom classifier)"""
 
-    def __init__(self, num_classes: int):
+    def __init__(self, num_classes: int, in_channels: int = 3):
         super(Net, self).__init__()
     
+        # Always expect 3 channels (since OrganAMNIST will be expanded to RGB)
         self.model = models.mobilenet_v2(weights=None)
         self.backbone = self.model.features
         
@@ -35,11 +36,32 @@ class Net(nn.Module):
         return x
 
 
-pytorch_transforms = Compose([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+# auto decide channels and transforms
+def get_dataset_config(dataset_name: str):
+    if dataset_name == "organamnist":
+        in_channels = 3  # expand grayscale → RGB
+        tfm = Compose([
+            ToTensor(),
+            Lambda(lambda x: x.repeat(3, 1, 1)),   # (1, H, W) → (3, H, W)
+            Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ])
+    else:
+        in_channels = 3
+        tfm = Compose([
+            ToTensor(),
+            Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ])
+    return in_channels, tfm
+
+
+# this is set dynamically from client/server
+pytorch_transforms = None
 
 
 def apply_transforms(batch):
     """Apply transforms to the partition from FederatedDataset."""
+    if pytorch_transforms is None:
+        raise RuntimeError("pytorch_transforms was not set before using apply_transforms")
     batch["image"] = [pytorch_transforms(img) for img in batch["image"]]
     return batch
 
@@ -100,7 +122,6 @@ def maybe_init_wandb(use_wandb: bool, wandbtoken: str) -> None:
             print(
                 "W&B token wasn't found. Set it by passing `--run-config=\"wandb-token='<YOUR-TOKEN>'\" to your `flwr run` command.",
             )
-            use_wandb = False
         else:
             os.environ["WANDB_API_KEY"] = wandbtoken
             wandb.init(project="Flower-hackathon-MedApp")
