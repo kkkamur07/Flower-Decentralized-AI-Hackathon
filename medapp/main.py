@@ -329,13 +329,14 @@ def create_dataset_tab(dataset_name: str, dataset_info: Dict[str, str]):
             with col2:  # Center the download button
                 pdf_content = generate_pdf_report(classification, medical_summary, dataset_info, classification['filename'])
                 st.download_button(
-                    label="📄 Download Complete Medical Report",
-                    data=pdf_content,
-                    file_name=f"medical_analysis_{classification['filename']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
-                    mime="text/html",
-                    type="primary",
-                    use_container_width=True
-                )
+    label="📄 Download Complete Medical Report",
+    data=pdf_content,
+    file_name=f"medical_analysis_{classification['filename']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
+    mime="text/html",
+    type="primary",
+    use_container_width=True,
+    key=f"download_{dataset_name}"  # Add this unique key
+)
             
             # Final note
             st.caption("💡 The complete analysis report includes all findings, clinical assessments, and AI interpretation for medical review.")
@@ -344,7 +345,7 @@ def main():
     """Main medical analysis application."""
     # Page configuration
     st.set_page_config(
-        page_title="Medical Image Analysis Laboratory",
+        page_title="MedX-Lab",
         page_icon="🏥",
         layout="wide",
         initial_sidebar_state="expanded"

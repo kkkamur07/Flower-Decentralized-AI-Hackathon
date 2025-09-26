@@ -38,9 +38,7 @@ def main(grid: Grid, context: Context) -> None:
     # Load global model
     global_model = Net(num_classes=num_classes, in_channels=in_channels)
     arrays = ArrayRecord(global_model.state_dict())
-
-    # Strategy (FedProx; note mu=0 equals FedAvg; set via run-config if desired)
-    strategy = FedProx(fraction_train=fraction_train)
+    strategy = FedProx(fraction_train=fraction_train, proximal_mu=0.01)
 
     # Start strategy
     result = strategy.start(

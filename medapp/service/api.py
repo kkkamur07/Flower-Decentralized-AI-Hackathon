@@ -17,10 +17,10 @@ from medapp.service.llm import llm_service
 
 # Model path constants
 MODEL_PATHS = {
-    "pathmnist": "./models/pathmnist_final_model.pt",
-    "retinamnist": "./models/retinamnist_final_model.pt", 
-    "dermamnist": "./models/dermamnist_final_model.pt",
-    "bloodmnist": "./models/bloodmnist_final_model.pt"
+    "pathmnist": "models/path.pt",
+    "retinamnist": "models/retina.pt", 
+    "dermamnist": "models/derma.pt",
+    "bloodmnist": "models/blood.pt"
 }
 
 # Model configurations
@@ -88,6 +88,7 @@ def load_model(dataset_name: str):
         config = MODEL_CONFIGS[dataset_name]
         model = Net(num_classes=config["num_classes"])
         
+        print(f"Loading model for {config['num_classes']}...")
         model_path = config["model_path"]
         if model_path and os.path.exists(model_path):
             state_dict = torch.load(model_path, map_location=device)

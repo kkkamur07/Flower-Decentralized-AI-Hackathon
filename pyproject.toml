@@ -40,12 +40,12 @@ clientapp = "medapp.client_app:app"
 
 # Custom config values accessible via `context.run_config`
 [tool.flwr.app.config]
-num-server-rounds = 5
+num-server-rounds = 3
 fraction-train = 0.5
-local-epochs = 7
-num-classes = 7
-dataset = "dermamnist"
-lr = 0.002
+local-epochs = 5
+num-classes = 9
+dataset = "pathmnist"
+lr = 0.0025
 use-wandb = false
 wandb-token = "4815b87637a4a9ac57e93ca23808eb4ca49102ed"
 
