@@ -32,7 +32,7 @@ def main(grid: Grid, context: Context) -> None:
     global_model = Net(num_classes=num_classes)
     arrays = ArrayRecord(global_model.state_dict())
 
-    # Initialize FedAvg strategy
+    #! Initialize FedAvg strategy -> Do something about this, maybe a better strategy for averaging. 
     strategy = FedAvg(fraction_train=fraction_train)
 
     # Start strategy, run FedAvg for `num_rounds`
