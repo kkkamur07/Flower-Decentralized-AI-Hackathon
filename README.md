@@ -10,10 +10,20 @@ MedX-Lab is a **next-generation diagnostic platform** that allows you to upload 
 Traditionally, diagnosis and report preparation can take **days** — MedX-Lab reduces this to **minutes**.  
 Doctors can quickly vet AI-prepared reports, accelerating clinical decision-making and patient care.  
 
-⚡ Built with **Federated Learning**:  
+⚡ Built with **Federated Learning** with **flower framework**:  
 - No patient data sharing issues (privacy preserved)  
 - AI is trained across multiple institutions without centralizing sensitive data  
 - Runs **locally**, ensuring compliance and security  
+
+---
+
+| Step                         | Human (Traditional) | AI (MedX-Lab) |
+|------------------------------|----------------------|---------------|
+| Sample upload & pre-check    | 2–4 hours           | < 1 minute    |
+| Initial classification       | 1–2 days            | < 5 minutes   |
+| Report preparation           | 1 day               | < 2 minutes   |
+| Doctor review & validation   | 1–2 hours           | ~1 hour (vetting only) |
+| **Total Time**               | **2–4 days**        | **~10 minutes + doctor vetting** |
 
 ---
 
