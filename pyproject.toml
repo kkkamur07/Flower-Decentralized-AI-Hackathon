@@ -15,10 +15,12 @@ license = "Apache-2.0"
 # Dependencies for your Flower App
 dependencies = [
     "datasets>=4.1.1",
+    "fastapi>=0.117.1",
     "flwr[simulation]>=1.22.0",
     "matplotlib>=3.10.6",
     "torch==2.8.0",
     "torchvision==0.23.0",
+    "uvicorn>=0.37.0",
     "wandb==0.21.4",
 ]
 
@@ -41,8 +43,8 @@ clientapp = "medapp.client_app:app"
 num-server-rounds = 5
 fraction-train = 0.5
 local-epochs = 7
-num-classes = 5
-dataset = "retinamnist"
+num-classes = 7
+dataset = "dermamnist"
 lr = 0.002
 use-wandb = false
 wandb-token = "4815b87637a4a9ac57e93ca23808eb4ca49102ed"
