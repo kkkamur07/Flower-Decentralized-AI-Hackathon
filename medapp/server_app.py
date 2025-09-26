@@ -4,7 +4,7 @@ import torch
 import wandb
 from flwr.app import ArrayRecord, ConfigRecord, Context, MetricRecord
 from flwr.serverapp import Grid, ServerApp
-from flwr.serverapp.strategy import FedAvg
+from flwr.serverapp.strategy import FedAvg, FedProx
 
 from medapp.task import Net, load_centralized_dataset, maybe_init_wandb, test
 
@@ -33,7 +33,7 @@ def main(grid: Grid, context: Context) -> None:
     arrays = ArrayRecord(global_model.state_dict())
 
     #! Initialize FedAvg strategy -> Do something about this, maybe a better strategy for averaging. 
-    strategy = FedAvg(fraction_train=fraction_train)
+    strategy = FedProx(fraction_train=fraction_train)
 
     # Start strategy, run FedAvg for `num_rounds`
     result = strategy.start(

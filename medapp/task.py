@@ -1,7 +1,6 @@
 """medapp: A Flower / pytorch_msg_api app."""
 
 import os
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -9,6 +8,7 @@ import wandb
 from datasets import load_from_disk
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Normalize, ToTensor
+import torchvision.models as models
 
 
 class Net(nn.Module):
@@ -16,20 +16,23 @@ class Net(nn.Module):
 
     def __init__(self, num_classes: int):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 13 * 13, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, num_classes)
+    
+        self.model = models.mobilenet_v2(weights=None)
+        self.backbone = self.model.features
+        
+        self.classifier = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),  
+            nn.Flatten(),
+            nn.Linear(1280, 256),     
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(256, num_classes)
+        )
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 13 * 13)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        return self.fc3(x)
+        x = self.backbone(x)
+        x = self.classifier(x)
+        return x
 
 
 pytorch_transforms = Compose([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
@@ -57,7 +60,7 @@ def train(net, trainloader, epochs, lr, device):
     """Train the model on the training set."""
     net.to(device)  # move model to GPU if available
     criterion = torch.nn.CrossEntropyLoss().to(device)
-    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+    optimizer = torch.optim.AdamW(net.parameters(), lr=lr)
     net.train()
     running_loss = 0.0
     for _ in range(epochs):
