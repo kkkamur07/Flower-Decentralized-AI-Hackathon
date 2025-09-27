@@ -2,7 +2,7 @@
 
 ---
 ## 🎥 Demo  
-![Live Demo](demo.gif)  
+![Live Demo](demoyo.gif)  
 
 ---
 MedX-Lab is a **diagnostic platform** for diagnostic labs that allows you to upload medical specimens (images, scans, etc.) and instantly receive an AI-generated diagnosis with follow-up medical recommendations and connect to a doctor instantly.  
