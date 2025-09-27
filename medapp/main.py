@@ -1,5 +1,6 @@
 """Streamlit app for Medical Image Classification using Federated Learning."""
 
+from distutils import config
 import streamlit as st
 import requests
 import io
@@ -329,18 +330,73 @@ def create_dataset_tab(dataset_name: str, dataset_info: Dict[str, str]):
             with col2:  # Center the download button
                 pdf_content = generate_pdf_report(classification, medical_summary, dataset_info, classification['filename'])
                 st.download_button(
-    label="📄 Download Complete Medical Report",
-    data=pdf_content,
-    file_name=f"medical_analysis_{classification['filename']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
-    mime="text/html",
-    type="primary",
-    use_container_width=True,
-    key=f"download_{dataset_name}"  # Add this unique key
-)
+                    label="📄 Download Complete Medical Report",
+                    data=pdf_content,
+                    file_name=f"medical_analysis_{classification['filename']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
+                    mime="text/html",
+                    type="primary",
+                    use_container_width=True,
+                    key=f"download_{dataset_name}"
+                )
+            
+            # DOCTOR VALIDATION SECTION - MOVED INSIDE THE FUNCTION
+            st.markdown("---")
+            st.markdown("### 👨‍⚕️ Doctor Validation")
+
+            col1, col2 = st.columns([1, 1])
+
+            with col1:
+                doctor_validation = st.selectbox(
+                    "Doctor's Assessment:",
+                    ["Pending Review", "Correct Diagnosis", "Incorrect Diagnosis", "Partially Correct"],
+                    key=f"validation_{dataset_name}"
+                )
+
+            with col2:
+                if doctor_validation != "Pending Review":
+                    if doctor_validation == "Incorrect Diagnosis":
+                        # Get class names from API response or use default
+                        class_names = list(classification['class_probabilities'].keys())
+                        correct_class = st.selectbox(
+                            "Correct Classification:",
+                            class_names,
+                            key=f"correct_class_{dataset_name}"
+                        )
+                    else:
+                        correct_class = classification['predicted_class']
+                    
+                    doctor_notes = st.text_area(
+                        "Doctor's Notes:",
+                        placeholder="Additional comments or corrections...",
+                        key=f"notes_{dataset_name}"
+                    )
+                    
+                    if st.button(f"Submit Validation", key=f"submit_validation_{dataset_name}"):
+                        # Save validation data
+                        validation_data = {
+                            "timestamp": datetime.now().isoformat(),
+                            "dataset": dataset_name,
+                            "filename": classification['filename'],
+                            "ai_prediction": classification['predicted_class'],
+                            "ai_confidence": classification['confidence'],
+                            "doctor_assessment": doctor_validation,
+                            "correct_class": correct_class,
+                            "doctor_notes": doctor_notes,
+                            "class_probabilities": classification['class_probabilities']
+                        }
+                        
+                        # Send to API for storage
+                        try:
+                            response = requests.post(f"{API_BASE_URL}/validation/submit", json=validation_data)
+                            if response.status_code == 200:
+                                st.success("✅ Validation submitted successfully!")
+                            else:
+                                st.error("❌ Failed to submit validation")
+                        except:
+                            st.error("❌ Could not connect to validation service")
             
             # Final note
             st.caption("💡 The complete analysis report includes all findings, clinical assessments, and AI interpretation for medical review.")
-
 def main():
     """Main medical analysis application."""
     # Page configuration
@@ -352,8 +408,8 @@ def main():
     )
     
     # Application header
-    st.title("🏥 Medical Image Analysis Laboratory")
-    st.markdown("### *AI-Powered Diagnostic Support System*")
+    st.title("MedX-Lab")
+    st.markdown("### *Fast, Affordable & Accurate Diagnostic System*")
     
     # Sidebar - Laboratory information
     with st.sidebar:

@@ -11,8 +11,9 @@ Traditionally, diagnosis and report preparation can take **days** — MedX-Lab r
 Doctors can quickly vet AI-prepared reports, accelerating clinical decision-making and patient care.  
 
 ⚡ Built with **Federated Learning** with **flower framework**:    
-- AI is trained across multiple institutions without sharing sensitive data  
-- Runs **locally**, ensuring compliance and security  
+- AI is trained across multiple institutions without sharing sensitive data and having models tuned to population patterns
+- Runs **locally**, ensuring reach, compliance and security.
+- Doctors vetting are captured and used for retraining, ensuring high accuracy is maintained. 
 
 Why it can have an **impact** ? 
 Imagine you are in some rural part of the world, urgently needing testing for critical medical care but you need to travel to the city to get an accurate report for your disease or you need the report urgently but due to queue in diagnostic systems. Here this diagnostic platform can have an considerable impact by expanding the reach of medical systems and making it affordable. 
@@ -33,7 +34,8 @@ Imagine you are in some rural part of the world, urgently needing testing for cr
 flowchart LR 
   A[Upload the image] --> B[Get the classification]
   B --> C[Get the report]
-  C --> D[Doctors vet the report]
+  C --> D[Doctors vet the report] 
+  D --> E[Retraining to ensure accuracy]
 ```
 
 ---

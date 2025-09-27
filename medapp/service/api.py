@@ -12,6 +12,9 @@ from typing import Dict, List, Optional
 import uvicorn
 from contextlib import asynccontextmanager
 
+import json
+from datetime import datetime
+
 from medapp.task import Net
 from medapp.service.llm import llm_service
 
@@ -66,6 +69,8 @@ MODEL_CONFIGS = {
         "samples": 17092
     }
 }
+
+VALIDATION_STORAGE_PATH = "validation_data.json"
 
 # Global variables
 loaded_models = {}
@@ -307,6 +312,85 @@ async def classify_dermamnist_with_summary(file: UploadFile = File(...)):
 async def classify_bloodmnist_with_summary(file: UploadFile = File(...)):
     """Classify blood cell image with medical summary."""
     return await classify_with_summary("bloodmnist", file)
+
+
+@app.post("/validation/submit")
+async def submit_validation(validation_data: Dict):
+    """Store doctor validation for retraining."""
+    try:
+        # Add timestamp if not present
+        if "timestamp" not in validation_data:
+            validation_data["timestamp"] = datetime.now().isoformat()
+        
+        # Store validation data (append to JSONL file)
+        os.makedirs(os.path.dirname(VALIDATION_STORAGE_PATH) if os.path.dirname(VALIDATION_STORAGE_PATH) else ".", exist_ok=True)
+        
+        with open(VALIDATION_STORAGE_PATH, "a") as f:
+            f.write(json.dumps(validation_data) + "\n")
+        
+        return {
+            "status": "success",
+            "message": "Validation data stored successfully",
+            "validation_id": validation_data["timestamp"]
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error storing validation: {str(e)}")
+
+@app.get("/validation/stats")
+async def get_validation_stats():
+    """Get validation statistics for retraining insights."""
+    try:
+        if not os.path.exists(VALIDATION_STORAGE_PATH):
+            return {"total_validations": 0, "accuracy_by_dataset": {}}
+        
+        validations = []
+        with open(VALIDATION_STORAGE_PATH, "r") as f:
+            for line in f:
+                validations.append(json.loads(line.strip()))
+        
+        # Calculate statistics
+        stats = {
+            "total_validations": len(validations),
+            "accuracy_by_dataset": {},
+            "common_misclassifications": {}
+        }
+        
+        for dataset in MODEL_CONFIGS.keys():
+            dataset_validations = [v for v in validations if v["dataset"] == dataset]
+            if dataset_validations:
+                correct = len([v for v in dataset_validations if v["doctor_assessment"] == "Correct Diagnosis"])
+                stats["accuracy_by_dataset"][dataset] = {
+                    "total": len(dataset_validations),
+                    "correct": correct,
+                    "accuracy": correct / len(dataset_validations)
+                }
+        
+        return stats
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting stats: {str(e)}")
+
+@app.get("/validation/export")
+async def export_validation_data():
+    """Export validation data for retraining."""
+    try:
+        if not os.path.exists(VALIDATION_STORAGE_PATH):
+            return {"message": "No validation data available"}
+        
+        validations = []
+        with open(VALIDATION_STORAGE_PATH, "r") as f:
+            for line in f:
+                validations.append(json.loads(line.strip()))
+        
+        return {
+            "total_records": len(validations),
+            "validation_data": validations
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exporting data: {str(e)}")
+
 
 if __name__ == "__main__":
     uvicorn.run(
